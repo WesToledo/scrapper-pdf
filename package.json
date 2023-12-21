@@ -1,0 +1,15 @@
+{
+  "scripts": {
+    "dev": "dotenv -- turbo dev",
+    "build": "turbo run build",
+    "start:prod": "node apps/backend/dist/main",
+    "start:services": "docker-compose up -d"
+  },
+  "devDependencies": {
+    "dotenv-cli": "^7.3.0",
+    "turbo": "^1.10.16"
+  },
+  "workspaces": [
+    "apps/*"
+  ]
+}
