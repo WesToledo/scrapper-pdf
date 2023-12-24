@@ -1,9 +1,11 @@
 {
   "scripts": {
     "dev": "dotenv -- turbo dev",
-    "build": "turbo run build",
-    "start:prod": "node apps/backend/dist/main",
-    "start:services": "docker-compose up -d"
+    "build": "dotenv -- turbo run build",
+    "start:prod": "node apps/api/dist/main",
+    "start:services": "docker-compose up -d",
+    "docker:build": "docker build -t upload-archive .",
+    "docker:run": "docker run -d -p 3000:80 upload-archive"
   },
   "devDependencies": {
     "dotenv-cli": "^7.3.0",
