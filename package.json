@@ -13,5 +13,8 @@
   },
   "workspaces": [
     "apps/*"
-  ]
+  ],
+  "dependencies": {
+    "@nestjs/platform-ws": "^10.3.0"
+  }
 }

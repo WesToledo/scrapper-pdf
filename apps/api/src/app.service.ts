@@ -4,51 +4,49 @@ import { spawn } from 'child_process';
 import * as path from 'path';
 
 import { Options, PythonShell } from 'python-shell';
+import { StringDecoder } from 'string_decoder';
 
 @Injectable()
 export class AppService {
   async uploadFile(file: Express.Multer.File) {
-    const py = spawn('python3', [
-      path.resolve(__dirname, '../', 'src/scrapper/script.py'),
-    ]);
-    const uploadedFilesKeyList = [
+    
+    const uploadedFilesKeyListTest = [
       '3001117181-10-2023.pdf',
       '3001165684-11-2023.pdf',
     ];
 
-    py.stdout.on('data', function (data) {
-      console.log('data', data.toString());
-    });
+    function runPy() {
+      return new Promise(async function (resolve, reject) {
+        let options: Options = {
+          mode: 'text',
+          pythonOptions: ['-u'],
+          scriptPath: path.resolve(__dirname, '../', 'src/scrapper'), //Path to your script
+          args: [JSON.stringify({ name: ['xyz', 'abc'], age: ['28', '26'] })], //Approach to send JSON as when I tried 'json' in mode I was getting error.
+        };
 
-    py.stdout.on('end', function () {
-      console.log('End =');
-    });
-    py.stdin.write(JSON.stringify(uploadedFilesKeyList));
-    py.stdin.end();
+        await PythonShell.run('script.py', options).then((results) => {
+          console.log('results: ');
+          for (let i of results) {
+            console.log(i, '---->', typeof i);
+          }
 
-    // let options: Options = {
-    //   mode: 'text',
-    //   pythonOptions: ['-u'], // get print results in real-time
-    //   args: ['value1', 'value2', 'value3'],
-    // };
+          try {
+            console.log(results[0]);
+          } catch (err) {
+            console.log('err = ', err);
+          }
+          resolve(results[0]);
+        });
+      });
+    }
 
-    // const pyshell = new PythonShell(
-    //   path.resolve(__dirname, '../', 'src/scrapper/script.py'),
-    //   options,
-    // );
+    function runMain() {
+      return new Promise(async function (resolve, reject) {
+        let r = await runPy();
+        console.log(JSON.parse(JSON.stringify(r.toString())), 'Done...!@'); //Approach to parse string to JSON.
+      });
+    }
 
-    // pyshell.on('message', function (message) {
-    //   // received a message sent from the Python script (a simple "print" statement)
-    //   console.log(message);
-    // });
-
-    // pyshell.end(function (err, code, signal) {
-    //   if (err) throw err;
-    //   console.log('The exit code was: ' + code);
-    //   console.log('The exit signal was: ' + signal);
-    //   console.log('finished');
-    // });
-
-    // console.log('pyshell');
+    runMain(); //run main function
   }
 }
