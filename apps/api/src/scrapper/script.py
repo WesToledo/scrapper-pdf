@@ -15,14 +15,15 @@ import json
 import requests
 
 
-PDFS_PATH = "./src/scrapper/uploads/"
+PDFS_PATH = "./src/arquives/"
 IMAGES_PATH = "./src/scrapper/img/"
 
 FILES = [
     # [
     #   0 -> pdf_path,
     #   1 -> img_path
-    #   2 -> result_ocr
+    #   2 -> pdf_name
+    #   3 -> result_ocr
     # ]
 ]
 
@@ -177,7 +178,8 @@ def convert_pdf_to_image(pdf_names):
 
         file_info = [
             pdf_path,
-            image_path
+            image_path,
+            pdf_name
         ]
 
         FILES.append(file_info)
@@ -211,12 +213,13 @@ if __name__ == "__main__":
         data = {
             "pdf_path": file[0],
             "img_path": file[1],
+            "pdf_name": file[2],
             "result": image_data,
         }
 
         RESPONSE.append(data)
 
     print(json.dumps(RESPONSE))
-    
+
     with open('data.json', 'w') as f:
         json.dump(data, f)

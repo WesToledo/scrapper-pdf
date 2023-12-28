@@ -3,24 +3,15 @@ import { UploadController } from './upload.controller';
 import { UploadService } from './upload.service';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
-import { ConfigService } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { PrismaService } from 'src/database/prisma.service';
+import { PrismaModule } from 'src/database/prisma.module';
+import { FaturaService } from 'src/fatura/fatura.service';
+import { FaturaModule } from 'src/fatura/fatura.module';
 
 @Module({
-  imports: [
-    ThrottlerModule.forRoot([
-      {
-        ttl: 60,
-        limit: 10,
-      },
-    ]),
-  ],
+  providers: [UploadService, FaturaService],
   controllers: [UploadController],
-  providers: [
-    UploadService,
-    {
-      provide: APP_GUARD,
-      useClass: ThrottlerGuard,
-    },
-  ],
+  imports: [PrismaModule],
 })
 export class UploadModule {}

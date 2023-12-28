@@ -11,9 +11,10 @@ import { diskStorage } from 'multer';
 import * as path from 'path';
 import { UploadService } from './upload.service';
 
-interface ResponseOCR {
+export interface ResponseOCR {
   pdf_path: string;
   img_path: string;
+  pdf_name: string;
   result: {
     numero_cliente: string;
     numero_instalacao: string;
@@ -44,7 +45,7 @@ export class UploadController {
   @UseInterceptors(
     FilesInterceptor('files[]', 30, {
       storage: diskStorage({
-        destination: path.resolve(__dirname, '../../', 'src/scrapper/uploads'),
+        destination: path.resolve(__dirname, '../../', 'src/arquives'),
         filename: (req, file, callback) => {
           callback(null, `${file.originalname}`);
         },
@@ -65,10 +66,10 @@ export class UploadController {
       filesNames.push(file.filename);
     });
 
-    const response = (await this.uploadService.runOCRScript(
-      filesNames,
-    )) as ResponseOCR[];
+    const response = JSON.parse(
+      (await this.uploadService.runOCRScript(filesNames)) as string,
+    ) as ResponseOCR[];
 
-    console.log('response', response);
+    await this.uploadService.computeData(response);
   }
 }
