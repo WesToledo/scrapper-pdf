@@ -122,8 +122,6 @@ export class UploadService {
             await fs.unlinkSync(
               path.resolve(__dirname, '../../', 'src/arquives', pdf_name),
             );
-
-            console.log('storage', storage);
           } catch (err) {
             console.log(err);
           }

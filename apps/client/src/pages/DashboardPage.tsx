@@ -25,30 +25,57 @@ import { useNavigate } from "react-router-dom";
 interface InfoCardProps {
   value: string;
   type: string;
-  footer: string;
+}
+
+interface MonthReferenceI {
+  referenceMonth: string;
+  referenceMonthNumber: number;
+  eletric_energy_amount: number;
+  eletric_energy_value: number;
+  sceee_energy_amount: number;
+  sceee_energy_value: number;
+  public_ilumination_contrib: number;
+  compensated_energy_amount: number;
+  compensated_energy_value: number;
+}
+
+export function getMonthNumber(monthName: string) {
+  const months = {
+    JAN: 1,
+    FEV: 2,
+    MAR: 3,
+    ABR: 4,
+    MAI: 5,
+    JUN: 6,
+    JUL: 7,
+    AGO: 8,
+    AG0: 8,
+    SET: 9,
+    OUT: 10,
+    "0UT": 10,
+    NOV: 11,
+    N0V: 11,
+    DEZ: 12,
+  };
+
+  return months[monthName] || 0;
 }
 
 export const Dashboard = () => {
   const navigate = useNavigate();
-  const [clientNumbers, setClientNumbers] = useState([]);
-  const [isLoadingClientNumbers, setIsLoadingClientNumbers] = useState(false);
+
   const [selectedClientNumber, setSelectedClientNumber] = useState();
 
-  const [KWHChartData, setKWHChartData] = useState({
-    labels: ["January", "February", "March", "April", "May", "June", "July"],
-    datasets: [
-      {
-        label: "My First dataset",
-        data: [65, 59, 80, 81, 56, 55, 40],
-      },
-      {
-        label: "My Second dataset",
-        data: [28, 48, 40, 19, 86, 27, 90],
-      },
-    ],
-  });
+  const [clientNumbers, setClientNumbers] = useState([]);
+  const [isLoadingClientNumbers, setIsLoadingClientNumbers] = useState(false);
+  const [dataMonths, setDataMonths] = useState<MonthReferenceI[]>([]);
+  const [KWHChartData, setKWHChartData] = useState();
+  const [moneyChartData, setMoneyChartData] = useState();
 
-  const [KWHChartOptions, setKWHChartOptions] = useState({
+  const [totalEletricEnergyAmount, setTotalEletricEnergyAmount] = useState(0);
+  const [totalEletricEnergyValue, setTotalEletricEnergyValue] = useState(0);
+
+  const chartOptions = {
     maintainAspectRatio: false,
     aspectRatio: 0.8,
     plugins: {
@@ -81,55 +108,7 @@ export const Dashboard = () => {
         },
       },
     },
-  });
-  const [moneyChartData, setMoneyChartData] = useState({
-    labels: ["January", "February", "March", "April", "May", "June", "July"],
-    datasets: [
-      {
-        label: "My First dataset",
-        data: [65, 59, 80, 81, 56, 55, 40],
-      },
-      {
-        label: "My Second dataset",
-        data: [28, 48, 40, 19, 86, 27, 90],
-      },
-    ],
-  });
-
-  const [moneyChartOptions, setMoneyChartOptions] = useState({
-    maintainAspectRatio: false,
-    aspectRatio: 0.8,
-    plugins: {
-      legend: {
-        labels: {
-          // fontColor: textColor,
-        },
-      },
-    },
-    scales: {
-      x: {
-        ticks: {
-          // color: textColorSecondary,
-          font: {
-            weight: 500,
-          },
-        },
-        grid: {
-          display: false,
-          drawBorder: false,
-        },
-      },
-      y: {
-        ticks: {
-          // color: textColorSecondary,
-        },
-        grid: {
-          // color: surfaceBorder,
-          drawBorder: false,
-        },
-      },
-    },
-  });
+  };
 
   useEffect(() => {
     async function getClientNumbers() {
@@ -154,14 +133,85 @@ export const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    console.log("selected", selectedClientNumber);
-
     async function getGraphData() {
       try {
-        const response = await api.get(
+        const { data } = await api.get(
           "/fatura/list-by-month/" + selectedClientNumber
         );
-        console.log("response.data", response.data);
+
+        const referencesMonths: MonthReferenceI[] = data
+          .map(({ referenceMonth, _sum }) => {
+            return {
+              referenceMonth,
+              referenceMonthNumber: getMonthNumber(referenceMonth),
+              eletric_energy_amount: _sum.eletric_energy_amount,
+              eletric_energy_value: _sum.eletric_energy_value,
+              sceee_energy_amount: _sum.sceee_energy_amount,
+              sceee_energy_value: _sum.sceee_energy_value,
+              public_ilumination_contrib: _sum.public_ilumination_contrib,
+              compensated_energy_amount: _sum.compensated_energy_amount,
+              compensated_energy_value: _sum.compensated_energy_value,
+            };
+          })
+          .sort((a, b) => a.referenceMonthNumber - b.referenceMonthNumber);
+
+        setDataMonths(referencesMonths);
+
+        const eletricEnergyAmountData = referencesMonths.map(
+          ({ eletric_energy_amount, sceee_energy_amount }) =>
+            eletric_energy_amount + sceee_energy_amount
+        );
+
+        const compensateEnergyAmount = referencesMonths.map(
+          ({ compensated_energy_amount }) => compensated_energy_amount
+        );
+
+        setTotalEletricEnergyAmount(
+          eletricEnergyAmountData.reduce((a, b) => a + b, 0)
+        );
+
+        const dataKWHChart = {
+          labels: referencesMonths.map(({ referenceMonth }) => referenceMonth),
+          datasets: [
+            {
+              label: "Consumo de Energia Elétrica (kwh)",
+              data: eletricEnergyAmountData,
+            },
+            {
+              label: "Energia Compensada (kwh)",
+              data: compensateEnergyAmount,
+            },
+          ],
+        };
+        setKWHChartData(dataKWHChart);
+
+        const eletricEnergyValues = referencesMonths.map(
+          ({ eletric_energy_value, sceee_energy_value }) =>
+            eletric_energy_value + sceee_energy_value
+        );
+
+        const conpensatedEnergyValues = referencesMonths.map(
+          ({ compensated_energy_value }) => compensated_energy_value
+        );
+
+        setTotalEletricEnergyValue(
+          eletricEnergyValues.reduce((a, b) => a + b, 0)
+        );
+
+        const dataMoneyChart = {
+          labels: referencesMonths.map(({ referenceMonth }) => referenceMonth),
+          datasets: [
+            {
+              label: "Valor Total sem GD",
+              data: eletricEnergyValues,
+            },
+            {
+              label: "Economia GD",
+              data: conpensatedEnergyValues,
+            },
+          ],
+        };
+        setMoneyChartData(dataMoneyChart);
       } catch (err) {
         console.log("err", err);
       }
@@ -174,7 +224,7 @@ export const Dashboard = () => {
       <Card pt={0} px={5}>
         <CardBody justifyContent="center" alignItems="center">
           {/* <Flex direction="column" spacing={1}> */}
-          <Text as="span" fontSize="xxx-large" fontWeight="bold">
+          <Text as="span" fontSize="xx-large" fontWeight="bold">
             {value}
           </Text>
           <Text as="span" fontSize="larger" fontWeight="bold">
@@ -182,7 +232,12 @@ export const Dashboard = () => {
           </Text>
 
           <Flex justifyContent="center">
-            <Text>{footer}</Text>
+            <Text>
+              {dataMonths.length &&
+                `${dataMonths[0].referenceMonth} - ${
+                  dataMonths[dataMonths.length - 1].referenceMonth
+                }`}
+            </Text>
           </Flex>
         </CardBody>
       </Card>
@@ -233,7 +288,7 @@ export const Dashboard = () => {
               <Heading as="h4" size="md">
                 Consumo Kw/h mensal
               </Heading>
-              <Chart type="bar" data={KWHChartData} options={KWHChartOptions} />
+              <Chart type="bar" data={KWHChartData} options={chartOptions} />
             </Stack>
           </Box>
           <Box
@@ -246,15 +301,21 @@ export const Dashboard = () => {
             height={"100%"}
           >
             <Flex justifyContent={"space-around"} m={3} mb={4}>
-              <InfoCard value="123" footer="MAR-ABR" type="Kw/h" />
-              <InfoCard value="1233" footer="MAR-ABR" type="R$" />
+              <InfoCard
+                value={"" + totalEletricEnergyAmount.toFixed(2)}
+                type="Kw/h"
+              />
+              <InfoCard
+                value={"" + totalEletricEnergyValue.toFixed(2)}
+                type="R$"
+              />
             </Flex>
 
             <Stack spacing={4}>
               <Heading as="h4" size="md">
                 Valores mensais
               </Heading>
-              <Chart type="bar" data={KWHChartData} options={KWHChartOptions} />
+              <Chart type="bar" data={moneyChartData} options={chartOptions} />
             </Stack>
           </Box>
         </Flex>

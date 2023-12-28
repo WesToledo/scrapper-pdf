@@ -35,7 +35,6 @@ export class FaturaService {
   }
 
   getGroupedByMonth(clientNumber?: string) {
-    console.log('asdas');
     return this.prisma.fatura.groupBy({
       by: ['referenceMonth'],
       where: { clientNumber },

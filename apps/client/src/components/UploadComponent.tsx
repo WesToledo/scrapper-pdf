@@ -67,18 +67,12 @@ export default function UploadComponent() {
 
     await api
       .post("/upload", formData, config)
-      .then((response) => {
-        console.log(response.data);
-      })
+      .then((response) => {})
       .catch((error) => {
         console.error("Error uploading file: ", error);
       });
     setIsUploading(false);
   }
-
-  useEffect(() => {
-    console.log("files", files);
-  }, [files]);
 
   const onTemplateUpload = (e: FileUploadUploadEvent) => {
     let _totalSize = 0;

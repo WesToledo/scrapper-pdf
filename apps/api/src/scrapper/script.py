@@ -1,19 +1,9 @@
 from pdf2image import convert_from_path
-import boto3.session
-from concurrent import futures
-from concurrent.futures import ThreadPoolExecutor
-from pathlib import Path
-from dotenv import load_dotenv
-import os
-import numpy as np
-from pdf2image import convert_from_path, convert_from_bytes
 import cv2
-from pytesseract import Output
 import sys
 import easyocr
 import json
-import requests
-
+import os
 
 PDFS_PATH = "./src/arquives/"
 IMAGES_PATH = "./src/scrapper/img/"
@@ -37,36 +27,30 @@ def find_image_containers(img):
     header_container = img[130:460, :]
     body_container = img[460:, :]
 
+    # Existe uma ligeira diferença entre certas faturas, que faziam com que
+    # a ordem dos contornos fosse diferente. Optou-se por manualmente cortar a imagem na seção certa
     container_0 = header_container[:, :670]
     container_1 = header_container[:, 670:]
 
-    # blur = cv2.pyrMeanShiftFiltering(image, 11, 21)
+    # tratamento da imagem
     blur = cv2.GaussianBlur(body_container, (7, 7), 0)
     gray = cv2.cvtColor(blur, cv2.COLOR_BGR2GRAY)
     thresh = cv2.threshold(
         gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
 
-    # thresh = cv2.adaptiveThreshold(gray, 255,
-    #                                cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 21, 4)
-
+    # procura os contornos da imagem
     contours = cv2.findContours(
         thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     contours = contours[0] if len(contours) == 2 else contours[1]
 
-    # do maior contorno ao menor
+    # sort do maior contorno(maior area) ao menor
     sorted_contours_by_size = sorted(
         contours, key=cv2.contourArea, reverse=True)[:13]
 
     del sorted_contours_by_size[8]
 
-    cv2.drawContours(
-        body_container, sorted_contours_by_size, -1, (0, 255, 0), 3)
-
-    # resized = cv2.resize(body_container, [500, 940])
-    # cv2.imshow("resized", resized)
-    # cv2.waitKey()
-
+    # organiza os containers sequencialmente TOP_TO_BOTTOM and LEFT_TO_RIGHT
     contours, boundingBoxes = sort_contours_by_position(
         sorted_contours_by_size, x_axis_sort='LEFT_TO_RIGHT', y_axis_sort='TOP_TO_BOTTOM')
 
@@ -81,7 +65,6 @@ def find_image_containers(img):
 
 
 def sort_contours_by_position(contours, x_axis_sort='LEFT_TO_RIGHT', y_axis_sort='TOP_TO_BOTTOM'):
-    # initialize the reverse flag
     x_reverse = False
     y_reverse = False
     if x_axis_sort == 'RIGHT_TO_LEFT':
@@ -104,9 +87,6 @@ def sort_contours_by_position(contours, x_axis_sort='LEFT_TO_RIGHT', y_axis_sort
 
 def find_data_container_0(img):
     height, _, _ = img.shape
-
-    # cv2.imshow("container 0", img)
-    # cv2.waitKey()
 
     cropped = img[height//2:, :]
 
@@ -199,8 +179,11 @@ def get_data_from_image(img):
 
 
 if __name__ == "__main__":
-    pdf_names = json.loads(sys.argv[1])  # sys.argv[0] is filename
 
+    # recebe os nomes dos arquivos recebidos do cliente enviados pelo PythonShell
+    pdf_names = json.loads(sys.argv[1])
+
+    # converte os PDF em imagens PIL
     convert_pdf_to_image(pdf_names)
 
     RESPONSE = []
@@ -217,9 +200,14 @@ if __name__ == "__main__":
             "result": image_data,
         }
 
+        # remove imagem criada do file system
+        os.remove(file[1])
+
         RESPONSE.append(data)
 
     print(json.dumps(RESPONSE))
 
+    # TO-DO : se alguma analise falhar, usar esse arquivo gerado para saber qual
+    # pdf deixou de ser analisado
     with open('data.json', 'w') as f:
         json.dump(data, f)
