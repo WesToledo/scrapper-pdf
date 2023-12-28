@@ -5,14 +5,16 @@ import { ConfigModule } from '@nestjs/config';
 
 import { join } from 'path';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { UploadModule } from './upload/upload.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({ isGlobal: true }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '../..', 'client', 'dist'),
       exclude: ['api/*'],
     }),
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [AppService],
