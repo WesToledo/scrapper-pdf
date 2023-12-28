@@ -1,63 +1,32 @@
-import React, { useState } from "react";
+import { Box, Container, Heading, Stack } from "@chakra-ui/react";
+import UploadComponent from "../components/UploadComponent";
+import { Page } from "../components/Page";
 
-import { api } from "../shared/api";
-import { AxiosProgressEvent } from "axios";
-
-function UploudPage() {
-  const [file, setFile] = useState();
-  const [uploadProgress, setUploadProgress] = useState(0);
-
-  console.log("upload", import.meta.env.VITE_BASE_URL_API);
-
-  function handleChange(event) {
-    setFile(event.target.files[0]);
-  }
-
-  function handleSubmit(event) {
-    event.preventDefault();
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const config = {
-      headers: {
-        "content-type": "multipart/form-data",
-      },
-      onUploadProgress: function (progressEvent: AxiosProgressEvent) {
-        const percentCompleted = Math.round(
-          (progressEvent.loaded * 100) / (progressEvent.total ?? 1)
-        );
-        setUploadProgress(percentCompleted);
-      },
-    };
-
-    api
-      .post("/upload", formData, config)
-      .then((response) => {
-        console.log(response.data);
-      })
-      .catch((error) => {
-        console.error("Error uploading file: ", error);
-      });
-  }
-
+const UploadPage = () => {
   return (
-    <div className="App">
-      <form onSubmit={handleSubmit}>
-        <h1>React File Upload with Progress</h1>
-        <input type="file" onChange={handleChange} accept=".zip,.rar,.7zip" />
-        <button type="submit">Upload</button>
-        <progress value={uploadProgress} max="100"></progress>
-      </form>
-    </div>
-
-
-
-
-
-
-
-
+    <Page>
+      <Container
+        maxW="4xl"
+        py={{ base: "12", md: "24" }}
+        px={{ base: "0", sm: "8" }}
+      >
+        <Stack spacing="8" width="100%">
+          <Stack spacing="6">
+            <Stack spacing={{ base: "2", md: "3" }} textAlign="center">
+              <Heading fontSize="2xl">Upload de Faturas</Heading>
+            </Stack>
+          </Stack>
+          <Box
+            boxShadow="2xl"
+            borderRadius={{ base: "none", sm: "xl" }}
+            height={"100%"}
+          >
+            <UploadComponent />
+          </Box>
+        </Stack>
+      </Container>
+    </Page>
   );
-}
+};
 
-export default UploudPage;
+export default UploadPage;
