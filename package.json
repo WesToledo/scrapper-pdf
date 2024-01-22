@@ -4,8 +4,8 @@
     "build": "dotenv -- turbo run build",
     "start:prod": "node apps/api/dist/main",
     "start:services": "docker-compose up -d",
-    "docker:build": "docker build -t upload-archive .",
-    "docker:run": "docker run -d -p 3000:80 upload-archive"
+    "docker:build": "docker build -t scrapper-pdf .",
+    "docker:run": "docker run -d -p 3000:80 scrapper-pdf"
   },
   "devDependencies": {
     "dotenv-cli": "^7.3.0",

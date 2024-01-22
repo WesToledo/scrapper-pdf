@@ -13,7 +13,7 @@ const UploadPage = () => {
         <Stack spacing="8" width="100%">
           <Stack spacing="6">
             <Stack spacing={{ base: "2", md: "3" }} textAlign="center">
-              <Heading fontSize="2xl">Upload de Faturas</Heading>
+              {/* <Heading fontSize="2xl">Upload de Faturas</Heading> */}
             </Stack>
           </Stack>
           <Box

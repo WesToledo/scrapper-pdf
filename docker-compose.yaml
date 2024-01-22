@@ -7,8 +7,8 @@ services:
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=12345678
-      - POSTGRES_DB=upload-archive
-    container_name: upload-archive
+      - POSTGRES_DB=scrapper-pdf
+    container_name: scrapper-pdf
     volumes:
       - ./pgdata:/var/lib/postgresql/data
     ports:

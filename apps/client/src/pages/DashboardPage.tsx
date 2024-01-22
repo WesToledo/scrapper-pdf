@@ -248,7 +248,7 @@ export const Dashboard = () => {
     <Page>
       <Container w="100%" py={5} maxW={"100vw"} centerContent>
         <Stack mb={6} textAlign="left">
-          <Heading fontSize="4xl">Dashboard</Heading>
+          {/* <Heading fontSize="4xl">Dashboard</Heading> */}
         </Stack>
         <Flex width="100%" justifyContent="space-around" alignItems="center">
           <Box

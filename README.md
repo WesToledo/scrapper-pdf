@@ -1,44 +1,60 @@
-# Desafio Scrapper
+# Scrapper PDF
 
-## Scrapper
+The main goal of this project was to create an simple scraper to extract some relevant data from PDF electric bills, save the extracted data in a database after parsing and show then in a WEB dashboard using **Python, React, NodeJS and Typescript**.
 
-A biblioteca de Visão Computacional escolhida foi o OpenCV. O OCR usado foi o EasyOCR.
+The scraper is writen in Python, using OpenCV library to manipulate and treat images and EasyOCR for the text recognition.
 
-### Instalação
+The data chosen to be extracted were the following:
 
-Use [pip](https://pip.pypa.io/en/stable/) para instalar as dependências.
+- Número do Cliente
+- Mês de referência
+- Energia Elétrica – Quantidade (kWh) e Valor (R$)
+- Energia SCEEE s/ICMS – Quantidade (kWh) e Valor (R$)
+- Energia Compensada GDI – Quantidade (kWh) e Valor (R$)
+- Contrib Ilum Publica Municipal – Valor (R$)
+
+## Scraper
+
+### Installation
+
+Use [pip](https://pip.pypa.io/en/stable/) to install.
 
 ```bash
 pip install cv2
 pip install pdf2image
-pip install dotenv
-pip install
 
-# Para instalar o EasyOCR seguir instalação de deps no site oficial
+# Follow the official site for this step
 pip install easyocr
 ```
 
-### OPENCV e EasyOCR
+### How it's done
 
-Com OPENCV se recupera o contorno dos blocos de informação dentro da fatura, e são divididos em container. Cada qual analisado separado a depender da informação a ser obtida. Para os desafio somente os items obrigatórios foram recuperados.
+To retrieve data from the PDF files, the script utilizes the **pdf2image** library to parse the PDF into a PIL Image. Subsequently, it employs OpenCV to identify the contours of information blocks in each file, dividing them into containers numbered from 0 to 13 (refer to the image below). As each container contains distinct information and exhibits different font sizes and styles, the script analyzes each one separately to extract the corresponding data.
 
-O Script python é invocado quando o usuário acessa a rota de /upload e envia faturas PDF. Ele recupera os dados de cada fatura e a fatura é salva num bucket S3.
+The script is triggered when the **/upload** route is accessed. The server stores the received PDF files locally and then, using **PythonShell**, passes the file paths to the Python script. It expects receiving a JSON object containing the extracted data after parsing.
+
+The PDF files are then uploaded to an AWS S3 bucket, and the extracted data is stored in a PostgreSQL database.
+
 
 ![Alt text](/assets/fatura_boundaries.png)
 
-## Instalação Node
+## Project Instalation
 
-Esse projeto é um Monorepo usando TurboRepo. A pasta /api contém um projeto Nestjs e a pasta /client um projeto Vite em React + Typescript.
+This project is a Monorepo built using TurboRepo. The **/api** has an NestJS project and the **/client** an Vite project using React + typescript.
 
-Instale com npm
+Install with **npm**
 
 ```bash
-  #Instala as dependências
   npm install
 
   # Docker compose
   npm run start:services
 
-  # Modo dev
+  # Dev Mode
   npm run dev
 ```
+
+
+## Testing
+
+Download the PDF bills for testing here: [Faturas](/assets/FATURAS.zip)
