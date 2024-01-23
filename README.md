@@ -1,8 +1,8 @@
 # Scrapper PDF
 
-The main goal of this project was to create an simple scraper to extract some relevant data from PDF electric bills, save the extracted data in a database after parsing and show then in a WEB dashboard using **Python, React, NodeJS and Typescript**.
+The main goal of this project was to create an simple scraper to extract some relevant data from PDF electric bills, save the extracted data in a database after parsing and show it in a WEB dashboard using **Python, React, NodeJS and Typescript**.
 
-The scraper is writen in Python, using OpenCV library to manipulate and treat images and EasyOCR for the text recognition.
+The scraper is written in Python, using OpenCV library to manipulate and treat images and EasyOCR for the text recognition.
 
 The data chosen to be extracted were the following:
 
@@ -20,11 +20,14 @@ The data chosen to be extracted were the following:
 Use [pip](https://pip.pypa.io/en/stable/) to install.
 
 ```bash
-pip install cv2
+pip install opencv-python
 pip install pdf2image
-
-# Follow the official site for this step
 pip install easyocr
+
+# If you receive an error when running the script, try downgrading the PIL and matplotlib  
+pip install --ignore-installed Pillow==9.3.0
+pip install matplotlib==3.7.1
+
 ```
 
 ### How it's done
@@ -48,7 +51,7 @@ Install with **npm**
   npm install
 
   # Docker compose
-  npm run start:services
+  npm run start:services   
 
   # Dev Mode
   npm run dev

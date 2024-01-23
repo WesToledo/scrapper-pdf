@@ -3,7 +3,9 @@
     "dev": "dotenv -- turbo dev",
     "build": "dotenv -- turbo run build",
     "start:prod": "node apps/api/dist/main",
-    "start:services": "docker-compose up -d",
+    "start:services": "docker-compose up -d && npm run prisma:init && npm run prisma:migration",
+    "prisma:init": "npx dotenv -- prisma generate",
+    "prisma:migration": "npx dotenv -- prisma migrate dev --schema=./apps/api/prisma/schema.prisma",
     "docker:build": "docker build -t scrapper-pdf .",
     "docker:run": "docker run -d -p 3000:80 scrapper-pdf"
   },
