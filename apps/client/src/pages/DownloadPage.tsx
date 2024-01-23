@@ -52,7 +52,6 @@ export const DownloadPage = () => {
         setIsLoadingClientNumbers(false);
         setSelectedClientNumber(clientNumbers[0]);
       } catch (err) {
-        console.log("err", err);
         setIsLoadingClientNumbers(false);
       }
     }
@@ -75,7 +74,7 @@ export const DownloadPage = () => {
             height={"100%"}
             p={10}
           >
-            <Flex justifyContent={"center"} mb={10}>
+            <Flex justifyContent={"center"} >
               {!isLoadingClientNumbers ? (
                 <FormControl>
                   <FormLabel fontWeight="bold" fontSize="sm">
@@ -83,7 +82,7 @@ export const DownloadPage = () => {
                   </FormLabel>
                   <Select
                     value={selectedClientNumber}
-                    w={300}
+                    // w={300}
                     name="client_number"
                     placeholder="Ṇº do Cliente"
                     onChange={(e) => setSelectedClientNumber(e.target.value)}
@@ -101,6 +100,8 @@ export const DownloadPage = () => {
                 <Spinner />
               )}
             </Flex>
+
+            {/* TO-DO - List of files */}
           </Box>
         </Flex>
       </Container>

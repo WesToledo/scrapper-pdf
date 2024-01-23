@@ -1,8 +1,9 @@
-import { Box, Container, Heading, Stack } from "@chakra-ui/react";
-import UploadComponent from "../components/UploadComponent";
+import { Box, Container, Stack } from "@chakra-ui/react";
 import { Page } from "../components/Page";
+import UploadComponent from "../components/UploadComponent";
 
 const UploadPage = () => {
+
   return (
     <Page>
       <Container

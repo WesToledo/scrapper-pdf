@@ -1,26 +1,24 @@
 import {
   Box,
+  Card,
   CardBody,
-  CardFooter,
-  CardHeader,
   Container,
   Flex,
   FormControl,
   FormLabel,
   Heading,
   Select,
-  SimpleGrid,
   Spinner,
   Stack,
   Text,
-  Card,
-  Button,
+  useToast,
 } from "@chakra-ui/react";
-import { Page } from "../components/Page";
 import { Chart } from "primereact/chart";
 import { useEffect, useState } from "react";
-import { api } from "../shared/api";
 import { useNavigate } from "react-router-dom";
+import { Page } from "../components/Page";
+import { api } from "../shared/api";
+import { getMonthNameByNumber } from "../shared/utils";
 
 interface InfoCardProps {
   value: string;
@@ -39,38 +37,25 @@ interface MonthReferenceI {
   compensated_energy_value: number;
 }
 
-export function getMonthNumber(monthName: string) {
-  const months = {
-    JAN: 1,
-    FEV: 2,
-    MAR: 3,
-    ABR: 4,
-    MAI: 5,
-    JUN: 6,
-    JUL: 7,
-    AGO: 8,
-    AG0: 8,
-    SET: 9,
-    OUT: 10,
-    "0UT": 10,
-    NOV: 11,
-    N0V: 11,
-    DEZ: 12,
-  };
-
-  return months[monthName] || 0;
+interface IChartData {
+labels: string[]
+datasets: {
+  label: string;
+  data: number[]
+}[]
 }
 
 export const Dashboard = () => {
   const navigate = useNavigate();
+  const toast = useToast()
 
   const [selectedClientNumber, setSelectedClientNumber] = useState();
 
   const [clientNumbers, setClientNumbers] = useState([]);
   const [isLoadingClientNumbers, setIsLoadingClientNumbers] = useState(false);
   const [dataMonths, setDataMonths] = useState<MonthReferenceI[]>([]);
-  const [KWHChartData, setKWHChartData] = useState();
-  const [moneyChartData, setMoneyChartData] = useState();
+  const [KWHChartData, setKWHChartData] = useState<IChartData>();
+  const [moneyChartData, setMoneyChartData] = useState<IChartData>();
 
   const [totalEletricEnergyAmount, setTotalEletricEnergyAmount] = useState(0);
   const [totalEletricEnergyValue, setTotalEletricEnergyValue] = useState(0);
@@ -110,8 +95,9 @@ export const Dashboard = () => {
     },
   };
 
+
   useEffect(() => {
-    async function getClientNumbers() {
+    async function fecthClientNumbers() {
       setIsLoadingClientNumbers(true);
       try {
         const response = await api.get("/fatura/list-client-numbers");
@@ -125,15 +111,19 @@ export const Dashboard = () => {
         setIsLoadingClientNumbers(false);
         setSelectedClientNumber(clientNumbers[0]);
       } catch (err) {
-        console.log("err", err);
+        toast({
+          title: 'Erro ao buscar clientes',
+          status: 'error',
+          isClosable: true,
+        })
         setIsLoadingClientNumbers(false);
       }
     }
-    getClientNumbers();
+    fecthClientNumbers();
   }, []);
 
   useEffect(() => {
-    async function getGraphData() {
+    async function fetchGraphData() {
       try {
         const { data } = await api.get(
           "/fatura/list-by-month/" + selectedClientNumber
@@ -143,7 +133,7 @@ export const Dashboard = () => {
           .map(({ referenceMonth, _sum }) => {
             return {
               referenceMonth,
-              referenceMonthNumber: getMonthNumber(referenceMonth),
+              referenceMonthNumber: getMonthNameByNumber(referenceMonth),
               eletric_energy_amount: _sum.eletric_energy_amount,
               eletric_energy_value: _sum.eletric_energy_value,
               sceee_energy_amount: _sum.sceee_energy_amount,
@@ -170,7 +160,7 @@ export const Dashboard = () => {
           eletricEnergyAmountData.reduce((a, b) => a + b, 0)
         );
 
-        const dataKWHChart = {
+        const KWHChartData: IChartData = {
           labels: referencesMonths.map(({ referenceMonth }) => referenceMonth),
           datasets: [
             {
@@ -183,7 +173,7 @@ export const Dashboard = () => {
             },
           ],
         };
-        setKWHChartData(dataKWHChart);
+        setKWHChartData(KWHChartData);
 
         const eletricEnergyValues = referencesMonths.map(
           ({ eletric_energy_value, sceee_energy_value }) =>
@@ -198,7 +188,7 @@ export const Dashboard = () => {
           eletricEnergyValues.reduce((a, b) => a + b, 0)
         );
 
-        const dataMoneyChart = {
+        const moneyChartData: IChartData = {
           labels: referencesMonths.map(({ referenceMonth }) => referenceMonth),
           datasets: [
             {
@@ -211,20 +201,24 @@ export const Dashboard = () => {
             },
           ],
         };
-        setMoneyChartData(dataMoneyChart);
+        setMoneyChartData(moneyChartData);
       } catch (err) {
-        console.log("err", err);
+        toast({
+          title: 'Erro ao gerar gráficos',
+          status: 'error',
+          isClosable: true,
+        })
       }
     }
-    getGraphData();
+    fetchGraphData();
   }, [selectedClientNumber]);
 
-  const InfoCard = ({ value, type, footer }: InfoCardProps) => {
+  const InfoCard = ({ value, type }: InfoCardProps) => {
     return (
       <Card pt={0} px={5}>
         <CardBody justifyContent="center" alignItems="center">
           {/* <Flex direction="column" spacing={1}> */}
-          <Text as="span" fontSize="xx-large" fontWeight="bold">
+          <Text as="span" fontSize="xx-large" fontWeight="bold" mr={1}>
             {value}
           </Text>
           <Text as="span" fontSize="larger" fontWeight="bold">
@@ -266,7 +260,7 @@ export const Dashboard = () => {
                   </FormLabel>
                   <Select
                     value={selectedClientNumber}
-                    w={300}
+                    // w={300}
                     name="client_number"
                     placeholder="Ṇº do Cliente"
                     onChange={(e) => setSelectedClientNumber(e.target.value)}
@@ -295,7 +289,6 @@ export const Dashboard = () => {
             w={"45vw"}
             p={10}
             pt={3}
-            boxShadow="2xl"
             boxShadow="2xl"
             borderRadius={{ base: "none", sm: "xl" }}
             height={"100%"}

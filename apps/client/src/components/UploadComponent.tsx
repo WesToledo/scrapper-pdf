@@ -1,31 +1,27 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Toast } from "primereact/toast";
+import "primeflex/primeflex.css"; // flex
+import "primeicons/primeicons.css"; //icons
+import { Button as ButtonPrime } from "primereact/button";
 import {
   FileUpload,
   FileUploadHeaderTemplateOptions,
-  FileUploadSelectEvent,
   FileUploadUploadEvent,
-  ItemTemplateOptions,
+  ItemTemplateOptions
 } from "primereact/fileupload";
 import { ProgressBar } from "primereact/progressbar";
-import { Button as ButtonPrime } from "primereact/button";
-import { Tag } from "primereact/tag";
-import { IoIosClose } from "react-icons/io";
+import "primereact/resources/primereact.min.css"; 
+import "primereact/resources/themes/lara-light-indigo/theme.css"; 
+import { useRef, useState } from "react";
 
 import { FaRegFilePdf } from "react-icons/fa6";
 
+import { Box, Button, useToast } from "@chakra-ui/react";
+import { AxiosProgressEvent } from "axios";
 import { PrimeReactProvider } from "primereact/api";
-import "primereact/resources/themes/lara-light-indigo/theme.css"; //theme
-import "primereact/resources/primereact.min.css"; //core css
-import "primeicons/primeicons.css"; //icons
-import "primeflex/primeflex.css"; // flex
-import { Box, Button } from "@chakra-ui/react";
 import { FaFileUpload } from "react-icons/fa";
 import { api } from "../shared/api";
-import { AxiosProgressEvent } from "axios";
 
 export default function UploadComponent() {
-  const toast = useRef<Toast>(null);
+  const toast = useToast()
   const [totalSize, setTotalSize] = useState(0);
   const fileUploadRef = useRef<FileUpload>(null);
   const [files, setFiles] = useState<File[]>([]);
@@ -45,7 +41,6 @@ export default function UploadComponent() {
 
   async function handleUpload(event) {
     event.preventDefault();
-
     setIsUploading(true);
 
     const formData = new FormData();
@@ -53,6 +48,7 @@ export default function UploadComponent() {
     files.forEach((file) => {
       formData.append("files[]", file, file.name);
     });
+
     const config = {
       headers: {
         "content-type": "multipart/form-data",
@@ -65,12 +61,23 @@ export default function UploadComponent() {
       },
     };
 
-    await api
+    try{
+
+      await api
       .post("/upload", formData, config)
-      .then((response) => {})
-      .catch((error) => {
-        console.error("Error uploading file: ", error);
-      });
+
+      toast({
+        title: 'Upload feito com sucesso',
+        status: 'success',
+        isClosable: true,
+      })
+    }catch(err){
+      toast({
+        title: 'Erro ao fazer upload',
+        status: 'error',
+        isClosable: true,
+      })
+    }
     setIsUploading(false);
   }
 
@@ -208,7 +215,6 @@ export default function UploadComponent() {
   return (
     <div>
       <PrimeReactProvider>
-        <Toast ref={toast}></Toast>
 
         <FileUpload
           ref={fileUploadRef}
